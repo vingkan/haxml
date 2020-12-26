@@ -1,5 +1,5 @@
 """
-Logic and utilities for HaxClass analytics.
+Logic and utilities for HaxML analytics.
 """
 
 
@@ -122,6 +122,23 @@ def inflate(packed):
         "possessions": possessions,
         "positions": positions
     }
+
+
+def replace_usernames_all_time_kicks(all_time_kicks):
+    username_map = {}
+    for key in all_time_kicks.keys():
+        kick = all_time_kicks[key]
+        from_name = kick["fromName"] if "fromName" in kick else None
+        to_name = kick["toName"] if "toName" in kick else None
+        if from_name:
+            if from_name not in username_map:
+                username_map[from_name] = "Player {}".format(len(username_map))
+            kick["fromName"] = username_map[from_name]
+        if to_name:
+            if to_name not in username_map:
+                username_map[to_name] = "Player {}".format(len(username_map))
+            kick["toName"] = username_map[to_name]
+    return all_time_kicks
 
 
 """

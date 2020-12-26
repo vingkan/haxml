@@ -1,7 +1,10 @@
+import sys
+sys.path.append("./")
+
+
 from decouple import config
-from haxclass import (
-    inflate,
-    is_shot
+from haxml.utils import (
+    inflate, is_shot
 )
 from flask import (
     Flask,
