@@ -41,10 +41,31 @@ Visit the [HaxClass Hub](https://vingkan.github.io/haxclass/hub) to browse data 
 
 ### First Time
 
-Set up virtual environment to use local dependencies instead of global dependencies.
+You may need to install git, Python, `pip`, `virtualenv`, and `make` to run these commands. We will use `virtualenv` to manage a virtual environment and use local dependencies instead of global dependencies. We will use `make` to download our data following reproducible steps.
 
 ```bash
+# Clone the repository.
+git clone https://github.com/vingkan/haxml.git
+# Enter the folder.
+cd haxml
+# Create a virtual environment called venv.
 virtualenv venv
+# Activate the virtual environment.
+source venv/bin/activate
+# Install project dependencies.
+pip install -r requirements.txt
+# Make an .env file for environment variables.
+touch .env
+# Pause to ask Vinesh for the credentials.
+# Edit the .env file and add the credentials.
+# Download the data.
+make
+# Start a Jupyter notebook server.
+jupyter notebook
+# Enter Ctrl+C to shut it down.
+# Start the Flask app.
+python server/__init__.py
+# Enter Ctrl+C to shut it down.
 ```
 
 ### Start Each Session
@@ -125,6 +146,44 @@ make clean
 make
 ```
 
+### Using Git
+
+Ask Vinesh to be added as a collaborator to the repository before trying to commit your work.
+
+Fetch the latest version of the repository and pull it into your version. Do this when you have no uncommitted changes.
+
+```bash
+git fetch origin
+git pull
+```
+
+Create your own branch and push it to the "remote" repository (called `origin`, by convention).
+
+```bash
+git checkout -b your_branch_name
+git push -u origin your_branch_name
+```
+
+Switch between branches.
+
+```bash
+git checkout other_branch_name
+```
+
+Check the status of files you have changed in this commit. Make sure you meant to change these files and that no files that you meant to ignore are included.
+
+```bash
+git status
+```
+
+Add all your changed files to the commit, create a message, and then push it.
+
+```bash
+git add -A
+git commit -m "Your descriptive commit message."
+git push
+```
+
 ### Deploying
 
 The HaxML Flask app is currently hosted on Heroku, on the free tier. You can wake it up by going to:
@@ -153,4 +212,8 @@ And you can check usage of dyno hours on the free tier with this command:
 heroku ps -a=haxml
 ```
 
-We also have a Digital Ocean Droplet where we can run the HaxClass data collection system and deploy the HaxML Flask app, albeit without an SSL-secured domain.
+We also have a Digital Ocean Droplet where we can run the HaxClass data collection system and deploy the HaxML Flask app, albeit without an SSL-secured domain. The IP address is:
+
+```
+104.236.21.173
+```
