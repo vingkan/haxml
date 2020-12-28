@@ -124,7 +124,7 @@ def get_xg_time_series(match):
             else:
                 ag_blue += 1
         elif kick["type"] == "own_goal":
-            if kick["team"] == "red":
+            if kick["fromTeam"] == "red":
                 ag_blue += 1
             else:
                 ag_red += 1
