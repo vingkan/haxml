@@ -17,6 +17,7 @@ Flask==1.1.2
 Flask-Cors==3.0.9
 gcloud==0.18.3
 googleapis-common-protos==1.52.0
+gunicorn==20.0.4
 httplib2==0.18.1
 idna==2.10
 importlib-metadata==3.3.0
