@@ -12,6 +12,7 @@ from flask import (
     Response,
     send_file
 )
+from flask_cors import CORS
 from haxml.prediction import (
     generate_rows_demo,
     predict_xg_demo
@@ -44,8 +45,13 @@ firebase_config = {
 print("Connecting to database...")
 firebase = pyrebase.initialize_app(firebase_config)
 db = firebase.database()
-# Initialize Flask app.
+# Initialize Flask app and enable CORS.
 app = Flask(__name__)
+allow_list = [
+    "http://localhost:2000",
+    "https://vingkan.github.io"
+]
+cors = CORS(app, resource={"/*": {"origins": allow_list}})
 
 # Load demo model.
 print("Loading models...")
