@@ -156,4 +156,4 @@ def get_xg_time_plot(mid):
 # Start the server on the default host.
 if __name__ == "__main__":
     print("Starting server...")
-    app.run(host="0.0.0.0")
+    app.run(host="0.0.0.0", port=int(config("PORT")))
