@@ -1,7 +1,6 @@
 import sys
 sys.path.append("./")
 
-
 from decouple import config
 from haxml.utils import (
     replace_usernames_all_time_kicks
@@ -15,7 +14,6 @@ if len(sys.argv) <= 1:
     raise IOError("Missing parameter: outfile")
 outfile = sys.argv[1]
 
-
 # Load Firebase credentials from .env file.
 firebase_config = {
     "apiKey": config("firebase_apiKey"),
@@ -26,17 +24,17 @@ firebase_config = {
     "messagingSenderId": config("firebase_messagingSenderId"),
     "appId": config("firebase_appId")
 }
-# Open connection to database and initialize Flask app.
 firebase = pyrebase.initialize_app(firebase_config)
 db = firebase.database()
 
-
 # Fetch all-time kicks data.
+print("Downloading all-time kicks from Firebase...")
 kicks_ref = db.child("kick").get()
 all_kicks = kicks_ref.val()
 
 # Remove usernames.
-clean_kicks = replace_usernames_all_time_kicks(all_kicks)
+print("Replacing usernames for {:,} kick records...".format(len(all_kicks)))
+clean_kicks = replace_usernames_all_time_kicks(all_kicks, progress=True)
 
 # Add kick ID as field.
 for key in clean_kicks.keys():
