@@ -55,7 +55,7 @@ cors = CORS(app, resource={"/*": {"origins": allow_list}})
 
 # Load demo model.
 print("Loading models...")
-demo_clf = joblib.load("models/demo_logistic_regression.pkl")
+demo_clf = joblib.load("models/demo_DecisionTree.pkl")
 # Load stadium data.
 print("Loading stadiums...")
 stadiums = get_stadiums("data/stadiums.json")
