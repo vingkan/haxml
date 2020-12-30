@@ -156,7 +156,8 @@ def plot_xg_time_series(match):
     Plots XG match time series for a match.
     Args:
         match: Inflated match data (dict).
-    Returns matplotlib Figure object.
+    Returns:
+        Tuple (fig, ax).
     """
     fig = Figure()
     ax = fig.add_subplot(1, 1, 1)
@@ -175,4 +176,4 @@ def plot_xg_time_series(match):
     ax.set_xlabel("Match Time (secs)")
     ax.set_ylabel("Goals")
     ax.legend()
-    return fig
+    return fig, ax

@@ -9,6 +9,7 @@ from decouple import config
 from flask import (
     Flask,
     jsonify,
+    request,
     Response,
     send_file
 )
@@ -45,6 +46,7 @@ firebase_config = {
 print("Connecting to database...")
 firebase = pyrebase.initialize_app(firebase_config)
 db = firebase.database()
+
 # Initialize Flask app and enable CORS.
 app = Flask(__name__)
 allow_list = [
@@ -55,7 +57,27 @@ cors = CORS(app, resource={"/*": {"origins": allow_list}})
 
 # Load demo model.
 print("Loading models...")
-demo_clf = joblib.load("models/demo_DecisionTree.pkl")
+# Define the models to load in production.
+DEFAULT_MODEL = "demo_logit"
+MODEL_CONFIGS = [
+    {
+        "name": "demo_logit",
+        "path": "models/demo_logistic_regression.pkl",
+        "generator": generate_rows_demo
+    },
+    {
+        "name": "demo_tree",
+        "path": "models/demo_DecisionTree.pkl",
+        "generator": generate_rows_demo
+    }
+]
+# Dict of production models, key: model name, value: tuple (clf, generator_fn).
+production_models = {}
+for model_config in MODEL_CONFIGS:
+    clf = joblib.load(model_config["path"])
+    gen = model_config["generator"]
+    production_models[model_config["name"]] = (clf, gen)
+
 # Load stadium data.
 print("Loading stadiums...")
 stadiums = get_stadiums("data/stadiums.json")
@@ -90,16 +112,26 @@ def get_match_and_stadium(mid):
     return packed, stadium
 
 
-def get_match_xg(packed, stadium):
+def get_model_name(request):
     """
-    Predict XG with demo model and augment response with predictions.
+    Helper method to get model name from request args.
     """
-    return predict_xg_demo(
-        inflate_match(packed),
-        stadium,
-        generate_rows_demo,
-        demo_clf
-    )
+    model_name = request.args.get("clf")
+    return model_name if model_name is not None else DEFAULT_MODEL
+
+
+def get_model_by_name(model_name=DEFAULT_MODEL):
+    """
+    Gets the classifier and generator function based on the given name.
+    Args:
+        model_name: Name of the model in MODEL_CONFIGS (str).
+    Returns:
+        Tuple (clf, generator_fn).
+    """
+    if model_name not in production_models:
+        raise KeyError("No model named: {}".format(model_name))
+    clf, gen = production_models[model_name]
+    return clf, gen
 
 
 @app.route("/hello")
@@ -122,11 +154,20 @@ def get_xg(mid):
             "success": False,
             "message": str(e)
         })
-    match_xg = get_match_xg(packed, stadium)
+    model_name = get_model_name(request)
+    try:
+        clf, gen = get_model_by_name(model_name)
+    except KeyError as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        })
+    match_xg = predict_xg_demo(inflate_match(packed), stadium, gen, clf)
     # Return inflated match data with XG as JSON.
     res = {
         "success": True,
         "mid": mid,
+        "model_name": model_name,
         "match": match_xg
     }
     return jsonify(res)
@@ -144,9 +185,19 @@ def get_xg_time_plot(mid):
             "success": False,
             "message": str(e)
         })
-    match_xg = get_match_xg(packed, stadium)
+    model_name = get_model_name(request)
+    try:
+        clf, gen = get_model_by_name(model_name)
+    except KeyError as e:
+        return jsonify({
+            "success": False,
+            "message": str(e)
+        })
+    match_xg = predict_xg_demo(inflate_match(packed), stadium, gen, clf)
     # Create and save XG time plot.
-    fig = plot_xg_time_series(match_xg)
+    fig, ax = plot_xg_time_series(match_xg)
+    # Add model name to a line in the chart title.
+    ax.set_title("{}\nXG Model: {}".format(ax.title.get_text(), model_name))
     fig.set_size_inches(10, 6)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
