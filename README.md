@@ -170,6 +170,13 @@ Switch between branches.
 git checkout other_branch_name
 ```
 
+Merge changes from `main` branch into your branch (commit your work first).
+
+```bash
+git checkout your_branch_name
+git merge main
+```
+
 Check the status of files you have changed in this commit. Make sure you meant to change these files and that no files that you meant to ignore are included.
 
 ```bash

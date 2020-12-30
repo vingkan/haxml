@@ -67,6 +67,7 @@ pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycparser==2.20
 pycryptodome==3.9.9
+pydotplus==2.0.2
 Pygments==2.7.3
 pyparsing==2.4.7
 Pyrebase4==4.4.3
