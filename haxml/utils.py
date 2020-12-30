@@ -89,6 +89,21 @@ def is_target_stadium(stadium):
     return stadium in TARGET_STADIUMS
 
 
+def to_clock(time_secs):
+    """
+    Converts match time in seconds to a clock time in the format: m:ss.
+    Args:
+        time_secs: Number of seconds (float).
+    Returns:
+        Clock time in format: m:ss (str).
+    """
+    mins = math.floor(time_secs / 60)
+    secs = str(math.floor(time_secs) % 60)
+    secs_left_pad = "0{}" if len(secs) == 1 else secs
+    time_clock = "{}:{}".format(mins, secs_left_pad)
+    return time_clock
+
+
 def inflate_match(packed):
     """
     Inflates packed match data from the database.
@@ -192,9 +207,10 @@ def inflate_match(packed):
     }
 
 
-def load_match(infile, callback):
+def load_match(infile, callback=None):
     """
     Loads packed match data from the given file and then runs a callback on it.
+    If no callback, returns inflated match data.
     Args:
         infile: Filename where packed match data is stored (string).
         callback: Method to call on inflated match data (method).
@@ -204,7 +220,9 @@ def load_match(infile, callback):
     with open(infile, "r") as file:
         packed = json.load(file)
         match = inflate_match(packed)
-    return callback(match)
+    if callback:
+        return callback(match)
+    return match
 
 
 def get_stadiums(infile):
