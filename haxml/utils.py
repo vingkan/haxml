@@ -509,14 +509,15 @@ def defender_box(match,stadium,kick):
             kicker = person
             break
     if kicker is None:
-        return 0
+        return 0,False
     #print("positions time = ", positions[0]["time"])
     for person in positions:
         if person["type"] == "ball" or person["playerId"] == kicker["playerId"]:
             continue
         if is_in_range(person,gp_y_low,gp_y_high,kicker['x'],goal_x, kicker["team"]):
             count = count + 1
-    return count
+    in_box = True if count>0 else False
+    return count, in_box
 
 def is_in_range_tri(person,goal_low,goal_high,fromX,fromY,goal_x, kick_team):
     if(fromY - goal_low != 0 and fromX - goal_x != 0):
@@ -545,10 +546,11 @@ def defender_cone(match,stadium,kick,offset):
             kicker = person
             break
     if kicker is None:
-        return 0
+        return 0, False
     for person in positions:
         if person["type"] == "ball" or person["playerId"] == kicker["playerId"]:
             continue
         if is_in_range_tri(person,gp_y_low,gp_y_high,kicker['x'],kicker['y'],goal_x, kicker["team"]):
             count = count + 1
-    return count
+    in_cone = True if count>0 else False
+    return count, in_cone
