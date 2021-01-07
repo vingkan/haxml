@@ -18,6 +18,7 @@ This repository contains all the tools we need to build machine learning models 
 haxml
 ├── data/               Data for analysis and modeling (not committed).
 ├── haxml/              Python modules for analysis, modeling, and serving.
+|   ├── evaluation.py
 |   ├── prediction.py
 |   ├── utils.py
 |   └── viz.py
