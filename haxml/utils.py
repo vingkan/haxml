@@ -444,3 +444,111 @@ def replace_usernames_packed_matches(packed_matches, progress=False):
                 username_map[name] = "Player {}".format(len(username_map))
             player["name"] = username_map[name]
     return packed_matches
+
+# Edwin feature functions
+def get_positions_at_time(positions, t):
+    """
+    Return a list of positions (dicts) closest to, but before time t.
+    """
+    # Assume positions list is already sorted.
+    # frame is a list of positions (dicts) that have the same timestamp.
+    frame = []
+    time = 0.0
+    for pos in positions:
+        if pos["time"] > t:
+            break
+        if pos["time"] == time:
+            frame.append(pos)
+        else:
+            frame = []
+            time = pos["time"]
+    return frame
+
+def defender_feature(match,kick,dist):
+    positions = get_positions_at_time(match["positions"], kick["time"])
+    closest_defender = float('inf')
+    defenders_pressuring = 0
+    ret = [0,0]
+    for person in positions:
+        if person['team'] is not kick['fromTeam'] and person['type'] == "player": 
+            defender_dist = stadium_distance(kick['fromX'],kick['fromY'],person['x'],person['y'])
+            #((kick['fromX'] - person['x'])**2 + (kick['fromY'] - person['y'])**2)**(1/2)
+            if defender_dist < closest_defender:
+                closest_defender = defender_dist
+                ret[0] = closest_defender
+            if defender_dist <= dist:
+                defenders_pressuring = defenders_pressuring + 1
+                ret[1] = defenders_pressuring
+    return ret
+
+def is_in_range(person,goal_low,goal_high,fromX,goal_x, kick_team):
+    is_x = False
+    is_y = False
+    if kick_team == "red":
+        if(person['x']>=fromX and person['x']<=goal_x):
+            is_x = True
+    else:
+        if(person['x']>=goal_x and person['x']<=fromX):
+            is_x = True
+    
+    if(person['y']>=goal_low and person['y']<=goal_high):
+        is_y = True
+        
+    return is_x and is_y
+
+def defender_box(match,stadium,kick):
+    count = 0
+    gp = get_opposing_goalpost(stadium,kick["fromTeam"])
+    gp_y_high = max([p["y"] for p in gp["posts"]])
+    gp_y_low = min([p["y"] for p in gp["posts"]])
+    goal_x = gp["posts"][0]["x"]
+    positions = get_positions_at_time(match["positions"], kick["time"])
+    kicker = None
+    for person in positions:
+        if person["playerId"] == kick["fromId"]:
+            kicker = person
+            break
+    if kicker is None:
+        return 0
+    #print("positions time = ", positions[0]["time"])
+    for person in positions:
+        if person["type"] == "ball" or person["playerId"] == kicker["playerId"]:
+            continue
+        if is_in_range(person,gp_y_low,gp_y_high,kicker['x'],goal_x, kicker["team"]):
+            count = count + 1
+    return count
+
+def is_in_range_tri(person,goal_low,goal_high,fromX,fromY,goal_x, kick_team):
+    if(fromY - goal_low != 0 and fromX - goal_x != 0):
+        slope_1 = (fromY-goal_low)/(fromX-goal_x)
+    else:
+        slope_1 = 0
+    if(fromY - goal_high != 0 and fromX - goal_x != 0):
+        slope_2 = (fromY-goal_high)/(fromX-goal_x)
+    else:
+        slope_2 = 0
+    
+    if(person['x']*slope_1+goal_low <= person['y'] and person['x']*slope_2+goal_high >= person['y']):
+        return True
+    return False
+
+def defender_cone(match,stadium,kick,offset):
+    count = 0
+    gp = get_opposing_goalpost(stadium,kick["fromTeam"])
+    gp_y_high = max([p["y"] for p in gp["posts"]])
+    gp_y_low = min([p["y"] for p in gp["posts"]])
+    goal_x = gp["posts"][0]["x"]
+    positions = get_positions_at_time(match["positions"], kick["time"]- offset)
+    kicker = None
+    for person in positions:
+        if person["playerId"] == kick["fromId"]:
+            kicker = person
+            break
+    if kicker is None:
+        return 0
+    for person in positions:
+        if person["type"] == "ball" or person["playerId"] == kicker["playerId"]:
+            continue
+        if is_in_range_tri(person,gp_y_low,gp_y_high,kicker['x'],kicker['y'],goal_x, kicker["team"]):
+            count = count + 1
+    return count
