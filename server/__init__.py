@@ -69,6 +69,11 @@ MODEL_CONFIGS = [
         "name": "demo_tree",
         "path": "models/demo_DecisionTree.pkl",
         "generator": generate_rows_demo
+    },
+    {
+        "name": "demo_knn5",
+        "path": "models/demo_knn5.pkl",
+        "generator": generate_rows_demo
     }
 ]
 # Dict of production models, key: model name, value: tuple (clf, generator_fn).
