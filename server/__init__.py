@@ -16,7 +16,9 @@ from flask import (
 from flask_cors import CORS
 from haxml.prediction import (
     generate_rows_demo,
-    predict_xg_demo
+    predict_xg_demo,
+    generate_rows_edwin,
+    predict_xg_edwin
 )
 from haxml.utils import (
     get_stadiums,
@@ -58,30 +60,46 @@ cors = CORS(app, resource={"/*": {"origins": allow_list}})
 # Load demo model.
 print("Loading models...")
 # Define the models to load in production.
-DEFAULT_MODEL = "demo_logit"
+DEFAULT_MODEL = "edwin_rf_12"
 MODEL_CONFIGS = [
     {
         "name": "demo_logit",
         "path": "models/demo_logistic_regression.pkl",
-        "generator": generate_rows_demo
+        "generator": generate_rows_demo,
+        "predictor": predict_xg_demo
     },
     {
         "name": "demo_tree",
         "path": "models/demo_DecisionTree.pkl",
-        "generator": generate_rows_demo
+        "generator": generate_rows_demo,
+        "predictor": predict_xg_demo
     },
     {
         "name": "demo_knn5",
         "path": "models/demo_knn5.pkl",
-        "generator": generate_rows_demo
+        "generator": generate_rows_demo,
+        "predictor": predict_xg_demo
+    },
+    {
+        "name": "edwin_rf_12",
+        "path": "models/random_forest_max_depth_12.pkl",
+        "generator": generate_rows_edwin,
+        "predictor": predict_xg_edwin
+    },
+    {
+        "name": "edwin_rf_15",
+        "path": "models/random_forest_max_depth_15.pkl",
+        "generator": generate_rows_edwin,
+        "predictor": predict_xg_edwin
     }
 ]
-# Dict of production models, key: model name, value: tuple (clf, generator_fn).
+# Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn).
 production_models = {}
 for model_config in MODEL_CONFIGS:
     clf = joblib.load(model_config["path"])
     gen = model_config["generator"]
-    production_models[model_config["name"]] = (clf, gen)
+    pred = model_config["predictor"]
+    production_models[model_config["name"]] = (clf, gen, pred)
 
 # Load stadium data.
 print("Loading stadiums...")
@@ -131,12 +149,12 @@ def get_model_by_name(model_name=DEFAULT_MODEL):
     Args:
         model_name: Name of the model in MODEL_CONFIGS (str).
     Returns:
-        Tuple (clf, generator_fn).
+        Tuple (clf, generator_fn, predictor_fn).
     """
     if model_name not in production_models:
         raise KeyError("No model named: {}".format(model_name))
-    clf, gen = production_models[model_name]
-    return clf, gen
+    clf, gen, pred = production_models[model_name]
+    return clf, gen, pred
 
 
 @app.route("/hello")
@@ -161,13 +179,13 @@ def get_xg(mid):
         })
     model_name = get_model_name(request)
     try:
-        clf, gen = get_model_by_name(model_name)
+        clf, gen, pred = get_model_by_name(model_name)
     except KeyError as e:
         return jsonify({
             "success": False,
             "message": str(e)
         })
-    match_xg = predict_xg_demo(inflate_match(packed), stadium, gen, clf)
+    match_xg = pred(inflate_match(packed), stadium, gen, clf)
     # Return inflated match data with XG as JSON.
     res = {
         "success": True,
@@ -192,13 +210,13 @@ def get_xg_time_plot(mid):
         })
     model_name = get_model_name(request)
     try:
-        clf, gen = get_model_by_name(model_name)
+        clf, gen, pred = get_model_by_name(model_name)
     except KeyError as e:
         return jsonify({
             "success": False,
             "message": str(e)
         })
-    match_xg = predict_xg_demo(inflate_match(packed), stadium, gen, clf)
+    match_xg = pred(inflate_match(packed), stadium, gen, clf)
     # Create and save XG time plot.
     fig, ax = plot_xg_time_series(match_xg)
     # Add model name to a line in the chart title.
