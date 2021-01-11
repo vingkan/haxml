@@ -554,3 +554,16 @@ def defender_cone(match,stadium,kick,offset):
             count = count + 1
     in_cone = True if count>0 else False
     return count, in_cone
+
+def speed_ball(match,kick,offset):
+    speed = 0
+    if kick["time"]>1:
+        position_before = get_positions_at_time(match["positions"], kick["time"] - offset)
+        position_after = get_positions_at_time(match["positions"], kick["time"])
+    else:
+        return 0
+    ball_before = list(filter(lambda person: person["type"] == "ball",position_before))[0]
+    ball_after = list(filter(lambda person: person["type"] == "ball",position_after))[0]
+    distance = stadium_distance(ball_before['x'],ball_before['y'],ball_after['x'],ball_after['y'])
+    time = (ball_after['time']-ball_before['time'])
+    return distance/time
