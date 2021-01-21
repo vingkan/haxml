@@ -99,7 +99,7 @@ def to_clock(time_secs):
     """
     mins = math.floor(time_secs / 60)
     secs = str(math.floor(time_secs) % 60)
-    secs_left_pad = "0{}" if len(secs) == 1 else secs
+    secs_left_pad = "0{}".format(secs) if len(secs) == 1 else secs
     time_clock = "{}:{}".format(mins, secs_left_pad)
     return time_clock
 
