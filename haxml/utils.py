@@ -445,7 +445,7 @@ def replace_usernames_packed_matches(packed_matches, progress=False):
             player["name"] = username_map[name]
     return packed_matches
 
-# Edwin feature functions
+
 def get_positions_at_time(positions, t):
     """
     Return a list of positions (dicts) closest to, but before time t.
@@ -453,16 +453,35 @@ def get_positions_at_time(positions, t):
     # Assume positions list is already sorted.
     # frame is a list of positions (dicts) that have the same timestamp.
     frame = []
-    time = 0.0
+    frame_time = 0.0
     for pos in positions:
+        # If we passed the target time t, return the frame we have
         if pos["time"] > t:
             break
-        if pos["time"] == time:
+        # If this positions is part of the current frame, add it
+        if pos["time"] == frame_time:
             frame.append(pos)
+        # If current frame is over, make a new frame and add this position to it
         else:
             frame = []
-            time = pos["time"]
+            frame.append(pos)
+            frame_time = pos["time"]
     return frame
+
+
+def get_positions_in_range(positions, start, end):
+    """
+    Return a list of positions (dicts) between start and end (inclusive).
+    """
+    assert start <= end, "Time `start` must be before `end`."
+    
+    def is_in_time_range(pos):
+        return pos["time"] >= start and pos["time"] <= end
+    
+    return list(filter(is_in_time_range, positions))
+
+
+# Edwin feature functions
 
 def defender_feature(match,kick,dist):
     positions = get_positions_at_time(match["positions"], kick["time"])
