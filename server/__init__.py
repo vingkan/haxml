@@ -87,8 +87,8 @@ MODEL_CONFIGS = [
         "predictor": predict_xg_edwin
     },
     {
-        "name": "edwin_rf_15",
-        "path": "models/random_forest_max_depth_15.pkl",
+        "name": "edwin_rf_8",
+        "path": "models/random_forest_max_depth_8.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     }
