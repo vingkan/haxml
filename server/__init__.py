@@ -81,6 +81,18 @@ MODEL_CONFIGS = [
         "predictor": predict_xg_demo
     },
     {
+        "name": "edwin_classic_rf_12",
+        "path": "models/random_forest_max_depth_12_classic.pkl",
+        "generator": generate_rows_edwin,
+        "predictor": predict_xg_edwin
+    },
+    {
+        "name": "edwin_classic_rf_8",
+        "path": "models/random_forest_max_depth_8_classic.pkl",
+        "generator": generate_rows_edwin,
+        "predictor": predict_xg_edwin
+    },
+    {
         "name": "edwin_rf_12",
         "path": "models/random_forest_max_depth_12.pkl",
         "generator": generate_rows_edwin,
