@@ -38,11 +38,8 @@ TARGET_STADIUMS = {
     "Futsalx3 | TK&ED": True,
     "Futsal x3 by Bazinga from HaxMaps": True,
     "FUTHAX 4v4": True,
-<<<<<<< HEAD
     "Happy Futsal 3x3 4x4": True,
-=======
     "Happy Futsal 3x3 4x4": True
->>>>>>> main
 }
 
 
