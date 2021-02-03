@@ -35,7 +35,11 @@ ALLOWED_TYPES = {
 TARGET_STADIUMS = {
     "NAFL Official Map v1": True,
     "NAFL 1v1/2v2 Map v1": True,
-    "Classic": True
+    "Classic": True,
+    "NAFL Official Map v1": True,
+    "FUTHAX 4v4": True,
+    "Futsal x3": True,
+    "WFL - 4v4": True,
 }
 
 
