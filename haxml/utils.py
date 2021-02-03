@@ -22,7 +22,7 @@ TEAMS = {
 SHOT_TYPES = {
     "save": True,
     "error": True,
-    "goal": True    
+    "goal": True
 }
 SCORED_TYPES = {
     "goal": True,
@@ -34,8 +34,9 @@ ALLOWED_TYPES = {
 }
 TARGET_STADIUMS = {
     "NAFL Official Map v1": True,
-    "NAFL 1v1/2v2 Map v1": True,
-    "Classic": True
+    "Classic": True,
+    "FUTHAX 4v4": True,
+    "Futsal x3": True
 }
 
 
@@ -110,7 +111,7 @@ def inflate_match(packed):
     Args:
         packed: The packed match, as a dict.
     Returns:
-        The inflated match, as a dict, with all the fields in the data schema. 
+        The inflated match, as a dict, with all the fields in the data schema.
     """
     player_map = {}
     for player in packed["players"]:
@@ -474,10 +475,10 @@ def get_positions_in_range(positions, start, end):
     Return a list of positions (dicts) between start and end (inclusive).
     """
     assert start <= end, "Time `start` must be before `end`."
-    
+
     def is_in_time_range(pos):
         return pos["time"] >= start and pos["time"] <= end
-    
+
     return list(filter(is_in_time_range, positions))
 
 
@@ -489,7 +490,7 @@ def defender_feature(match,kick,dist):
     defenders_pressuring = 0
     ret = [0,0]
     for person in positions:
-        if person['team'] is not kick['fromTeam'] and person['type'] == "player": 
+        if person['team'] is not kick['fromTeam'] and person['type'] == "player":
             defender_dist = stadium_distance(kick['fromX'],kick['fromY'],person['x'],person['y'])
             #((kick['fromX'] - person['x'])**2 + (kick['fromY'] - person['y'])**2)**(1/2)
             if defender_dist < closest_defender:
@@ -509,10 +510,10 @@ def is_in_range(person,goal_low,goal_high,fromX,goal_x, kick_team):
     else:
         if(person['x']>=goal_x and person['x']<=fromX):
             is_x = True
-    
+
     if(person['y']>=goal_low and person['y']<=goal_high):
         is_y = True
-        
+
     return is_x and is_y
 
 def defender_box(match,stadium,kick):
@@ -547,7 +548,7 @@ def is_in_range_tri(person,goal_low,goal_high,fromX,fromY,goal_x, kick_team):
         slope_2 = (fromY-goal_high)/(fromX-goal_x)
     else:
         slope_2 = 0
-    
+
     if(person['x']*slope_1+goal_low <= person['y'] and person['x']*slope_2+goal_high >= person['y']):
         return True
     return False
