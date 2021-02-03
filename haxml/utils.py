@@ -34,11 +34,11 @@ ALLOWED_TYPES = {
 }
 TARGET_STADIUMS = {
     "NAFL Official Map v1": True,
-    "NAFL 1v1/2v2 Map v1": True,
-    "Classic": True,
-    "NAFL Official Map v1": True,
+    "Futsal 3x3 4x4 from HaxMaps": True,
+    "Futsalx3 | TK&ED": True,
+    "Futsal x3 by Bazinga from HaxMaps": True,
     "FUTHAX 4v4": True,
-    "Futsal x3": True
+    "Happy Futsal 3x3 4x4": True,
 }
 
 
