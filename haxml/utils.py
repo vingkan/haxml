@@ -39,6 +39,10 @@ TARGET_STADIUMS = {
     "NAFL Official Map v1": True,
     "FUTHAX 4v4": True,
     "Futsal x3": True,
+<<<<<<< HEAD
+=======
+    "WFL - 4v4": True,
+>>>>>>> d630343... Staduim data filter change
 }
 
 
