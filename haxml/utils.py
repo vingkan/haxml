@@ -39,7 +39,6 @@ TARGET_STADIUMS = {
     "NAFL Official Map v1": True,
     "FUTHAX 4v4": True,
     "Futsal x3": True,
-    "WFL - 4v4": True,
 }
 
 
