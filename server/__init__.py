@@ -18,7 +18,10 @@ from haxml.prediction import (
     generate_rows_demo,
     predict_xg_demo,
     generate_rows_edwin,
-    predict_xg_edwin
+    predict_xg_edwin,
+    generate_rows_lynn,
+    predict_xg_lynn_both,
+    predict_xg_lynn_weighted
 )
 from haxml.utils import (
     get_stadiums,
@@ -63,7 +66,7 @@ cors = CORS(app, resource={"/*": {"origins": allow_list}})
 print("Loading models...")
 start_time = time.time()
 # Define the models to load in production.
-DEFAULT_MODEL = "edwin_rf_12"
+DEFAULT_MODEL = "lynn_rf_weighted"
 # TODO: Consider lazy loading models at request to reduce server start-up time
 # while still allowing us to access many deployed models in production.
 MODEL_CONFIGS = [
@@ -87,32 +90,45 @@ MODEL_CONFIGS = [
     },
     {
         "name": "edwin_classic_rf_12",
-        "path": "models/random_forest_max_depth_12_classic.pkl",
+        "path": "models/edwin_classic_random_forest_max_depth_12.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_classic_rf_8",
-        "path": "models/random_forest_max_depth_8_classic.pkl",
+        "path": "models/edwin_classic_random_forest_max_depth_8.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_rf_12",
-        "path": "models/random_forest_max_depth_12.pkl",
+        "path": "models/edwin_random_forest_max_depth_12.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_rf_8",
-        "path": "models/random_forest_max_depth_8.pkl",
+        "path": "models/edwin_random_forest_max_depth_8.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
+    },
+    {
+        "name": "lynn_rf_weighted",
+        "path": "models/lynn_random_forest_max_depth_15_only_weighted_dist.pkl",
+        "generator": generate_rows_lynn,
+        "predictor": predict_xg_lynn_weighted
+    },
+    {
+        "name": "lynn_rf_both",
+        "path": "models/lynn_random_forest_max_depth_15_both_def_dist.pkl",
+        "generator": generate_rows_lynn,
+        "predictor": predict_xg_lynn_both
     }
 ]
 # Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn).
 production_models = {}
 for model_config in MODEL_CONFIGS:
+    print("Loading: " + model_config["name"])
     clf = joblib.load(model_config["path"])
     gen = model_config["generator"]
     pred = model_config["predictor"]
