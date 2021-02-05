@@ -35,8 +35,11 @@ import joblib
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import os
 import pyrebase
+import time
 
 
+print("Connecting to database...")
+start_time = time.time()
 # Load Firebase credentials from .env file.
 firebase_config = {
     "apiKey": config("firebase_apiKey"),
@@ -48,9 +51,9 @@ firebase_config = {
     "appId": config("firebase_appId")
 }
 # Open connection to Firebase.
-print("Connecting to database...")
 firebase = pyrebase.initialize_app(firebase_config)
 db = firebase.database()
+print("\tDone in {:.1f} secs".format(time.time() - start_time))
 
 # Initialize Flask app and enable CORS.
 app = Flask(__name__)
@@ -60,10 +63,12 @@ allow_list = [
 ]
 cors = CORS(app, resource={"/*": {"origins": allow_list}})
 
-# Load demo model.
 print("Loading models...")
+start_time = time.time()
 # Define the models to load in production.
 DEFAULT_MODEL = "edwin_rf_12"
+# TODO: Consider lazy loading models at request to reduce server start-up time
+# while still allowing us to access many deployed models in production.
 MODEL_CONFIGS = [
     {
         "name": "demo_logit",
@@ -82,6 +87,18 @@ MODEL_CONFIGS = [
         "path": "models/demo_knn5.pkl",
         "generator": generate_rows_demo,
         "predictor": predict_xg_demo
+    },
+    {
+        "name": "edwin_classic_rf_12",
+        "path": "models/random_forest_max_depth_12_classic.pkl",
+        "generator": generate_rows_edwin,
+        "predictor": predict_xg_edwin
+    },
+    {
+        "name": "edwin_classic_rf_8",
+        "path": "models/random_forest_max_depth_8_classic.pkl",
+        "generator": generate_rows_edwin,
+        "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_rf_12",
@@ -115,10 +132,13 @@ for model_config in MODEL_CONFIGS:
     gen = model_config["generator"]
     pred = model_config["predictor"]
     production_models[model_config["name"]] = (clf, gen, pred)
+print("\tDone in {:.1f} secs".format(time.time() - start_time))
 
 # Load stadium data.
 print("Loading stadiums...")
+start_time = time.time()
 stadiums = get_stadiums("data/stadiums.json")
+print("\tDone in {:.1f} secs".format(time.time() - start_time))
 
 
 def get_match_packed(mid):
