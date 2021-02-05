@@ -18,7 +18,10 @@ from haxml.prediction import (
     generate_rows_demo,
     predict_xg_demo,
     generate_rows_edwin,
-    predict_xg_edwin
+    predict_xg_edwin,
+    generate_rows_lynn,
+    predict_xg_lynn_both,
+    predict_xg_lynn_weighted
 )
 from haxml.utils import (
     get_stadiums,
@@ -91,6 +94,18 @@ MODEL_CONFIGS = [
         "path": "models/random_forest_max_depth_8.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
+    },
+    {
+        "name": "lynn_rf_weighted",
+        "path": "models/lynn_random_forest_max_depth_15_only_weighted_dist.pkl",
+        "generator": generate_rows_lynn,
+        "predictor": predict_xg_lynn_weighted
+    },
+    {
+        "name": "lynn_rf_both",
+        "path": "models/lynn_random_forest_max_depth_15_both_def_dist.pkl",
+        "generator": generate_rows_lynn,
+        "predictor": predict_xg_lynn_both
     }
 ]
 # Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn).
