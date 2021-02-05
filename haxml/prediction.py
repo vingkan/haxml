@@ -11,13 +11,18 @@ from haxml.utils import (
     angle_from_goal,
     is_scored_goal,
     get_positions_at_time,
+    get_positions_in_range,
     # Edwin's Model Features
     defender_feature,
     defender_box,
     defender_cone,
-    speed_ball
+    speed_ball,
     #Lynn's Model Features
-
+    shot_intersection,
+    shot_on_goal,
+    defender_feature_weighted,
+    speed_player,
+    in_stadium
 )
 import math
 import pandas as pd

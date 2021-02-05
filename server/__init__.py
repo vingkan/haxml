@@ -66,7 +66,7 @@ cors = CORS(app, resource={"/*": {"origins": allow_list}})
 print("Loading models...")
 start_time = time.time()
 # Define the models to load in production.
-DEFAULT_MODEL = "edwin_rf_12"
+DEFAULT_MODEL = "lynn_rf_weighted"
 # TODO: Consider lazy loading models at request to reduce server start-up time
 # while still allowing us to access many deployed models in production.
 MODEL_CONFIGS = [
@@ -128,6 +128,7 @@ MODEL_CONFIGS = [
 # Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn).
 production_models = {}
 for model_config in MODEL_CONFIGS:
+    print("Loading: " + model_config["name"])
     clf = joblib.load(model_config["path"])
     gen = model_config["generator"]
     pred = model_config["predictor"]
