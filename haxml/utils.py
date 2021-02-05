@@ -38,6 +38,7 @@ TARGET_STADIUMS = {
     "Futsalx3 | TK&ED": True,
     "Futsal x3 by Bazinga from HaxMaps": True,
     "FUTHAX 4v4": True,
+    "Happy Futsal 3x3 4x4": True,
     "Happy Futsal 3x3 4x4": True
 }
 
@@ -589,3 +590,178 @@ def speed_ball(match,kick,offset):
     distance = stadium_distance(ball_before['x'],ball_before['y'],ball_after['x'],ball_after['y'])
     time = (ball_after['time']-ball_before['time'])
     return distance/time
+
+#Lynn's features
+
+def shot_intersection(match,kick, stadium, frame):
+    '''Finds where the ball would intersect
+    Args:
+    match: Which match it is
+    kick: Which kick we want to measure
+    staduim: What stadium size it is (so we know where the goals and bounds are)
+
+    Returns:
+    Int 1 or 0 if the ball is going towars the goal or not
+    '''
+    #Getting last frame before the kick 
+    #print("Calculate intersection at time: {}".format(kick["time"] - offset))
+    #frame = get_positions_at_time(match["positions"], kick["time"] - offset)
+    #Using in range and tracing back to see what frame was right before it left the foot
+    #A list of lists with only info about player we want and ball
+    shooter_frames = []
+    ball_frames = []
+    #print(kick['fromName'])
+    for i in frame:
+        if i['name'] == kick['fromName']: 
+            shooter_frames.append(i)  
+        elif i['type'] == 'ball':
+            ball_frames.append(i)
+    #print(shooter_frames)
+    #print(ball_frames)
+    #picking frame with least dist
+    least_dist = float('inf')
+    player_position = {}
+    ball_position = {}
+    #List of dicts
+    length = min(len(shooter_frames),len(ball_frames))
+    set_dist = 30 #ball and player are at least get within 30 units then we assume that it was kicked
+    
+    for i in range(length-1,-1,-1): #frame len of ball and shooter should be the same
+        dist = stadium_distance(shooter_frames[i]['x'],shooter_frames[i]['y'],ball_frames[i]['x'],ball_frames[i]['y'])
+        if dist <= set_dist:
+            player_position = shooter_frames[i]
+            ball_position = ball_frames[i]
+            break
+    #If a frame isn't found with dist that is <= 30, then use least dist to calculate
+    if not (ball_position) or not (player_position): #The dictionaries were not populated yet so default to getting least distance
+        for i in range(length-1,-1,-1): #frame len of ball and shooter should be the same
+            dist = stadium_distance(shooter_frames[i]['x'],shooter_frames[i]['y'],ball_frames[i]['x'],ball_frames[i]['y'])
+            if dist <= least_dist:
+                player_position = shooter_frames[i]
+                ball_position = ball_frames[i]
+                least_dist = dist
+            else: #stopped decreasing
+                break
+    #print(frame)
+    #print(player_position)
+    #print(ball_position)
+    #Getting goal positions
+    goal_mid = get_opposing_goalpost(stadium, kick['fromTeam'])['mid']
+    #print(goal_mid)
+     #Extend line from shot angle (can't extend lines easily)
+    if(len(player_position)==0 or len(ball_position)==0):
+        return None, None, None
+    y_val = point_slope(
+        player_position,
+        slope(player_position['x'], player_position['y'], ball_position['x'], ball_position['y']),
+        goal_mid['x']
+    )
+    #Checking if the projection between the posts
+    intersect = { 'x': goal_mid['x'], 'y': y_val }
+    return player_position, ball_position, intersect
+
+def shot_on_goal(match, kick, intersect, stadium):
+    '''Figuring out if shot is going into the goal or not
+        Args:
+            match: Which match it is
+            kick: Which kick we want to measure
+            intersect: x,y of the shot intersection
+            stadium: Which staduim was it played on
+
+        Returns:
+                1 if shot is on goal, .5 if it hits the post, and 0 if it isn't on goal
+    '''
+    goal_posts = get_opposing_goalpost(stadium, kick['fromTeam'])['posts']
+    if intersect['y'] > goal_posts[0]['y'] and intersect['y'] < goal_posts[1]['y']:
+        return 1
+    #elif intersect['y'] == goal_posts[0]['y'] or intersect['y'] == goal_posts[1]['y']:
+        #hits posts
+        #return .5
+    else:
+        return 0
+
+def speed_player(match,kick,player_name,positions):
+    '''' Speed of the player
+       Args:
+           match: Which match it is
+           kick: Which kick we want to measure
+           player_name: What player do we want to measure the speed for
+
+        Returns:
+           Int that represents the speed of the player
+    '''
+    #Getting time range to be able to measure distance
+    #start = get_positions_at_time(match["positions"], kick["time"] - offset)
+    #end = get_positions_at_time(match["positions"], kick["time"])
+    #getting positions
+    
+    #print(positions)
+    player_pos = []
+    for i in positions:
+        if i['name'] == player_name: 
+            player_pos.append(i)    
+    #print(player_pos)
+    #Getting the time
+    if len(player_pos) > 1:
+        last = len(player_pos)-1#getting last index)
+        time = player_pos[last]['time'] -  player_pos[0]['time'] 
+        #Getting the distance 
+        distance = stadium_distance(player_pos[0]['x'],player_pos[0]['y'],player_pos[last]['x'],player_pos[last]['y'])
+        #dist_formula(player_pos[0]['x'],player_pos[0]['y'],player_pos[last]['x'],player_pos[last]['y'])
+        #print("dist:" + str(distance))
+        #print("time:" + str(time))
+        #Returns speed
+        #NEED TO CHANGE TIME INTO SECONDS SO THAT IT IS CONSTANT AND NOT DIVIDING BY DIFF VALS
+        return distance/time
+    else:
+        return 0
+
+def defender_feature_weighted(match,kick,stadium,positions,dist=0):
+    '''Figuring out the closest defender and num of defenders for a kick
+        Note: This is weighted so that defenders that are close to the player/ball or the goal count as 1.5 rather than 1
+        Args:
+            match: Which match it is
+            kick: Which kick we want to measure
+            dist: Set distance to consider a player pressuring
+
+        Returns:
+                List that contains the distance of the closest defender and the number of defenders (weighted)
+'''
+    closest_defender = float('inf')
+    defenders_pressuring = 0
+    ret = [0,0]
+    for person in positions:
+        if person['team'] is not kick['fromTeam'] and person['type'] == "player": 
+            defender_dist = stadium_distance(kick['fromX'],kick['fromY'],person['x'],person['y'])
+            #((kick['fromX'] - person['x'])**2 + (kick['fromY'] - person['y'])**2)**(1/2)
+            if defender_dist < closest_defender:
+                closest_defender = defender_dist
+                ret[0] = closest_defender
+            if defender_dist <= dist:
+                #Checking distances  for weights
+                post = get_opposing_goalpost(stadium, kick['fromTeam'])
+                goal_dist = stadium_distance(post['mid']['x'], post['mid']['y'] ,person['x'],person['y'])
+                if defender_dist <= 5:
+                    defenders_pressuring += 1.5
+                elif goal_dist <= 5:
+                    defenders_pressuring += 1.5
+                else:
+                    defenders_pressuring += 1
+                ret[1] = defenders_pressuring
+    return ret
+
+def in_stadium(stadium):
+    recognized_stadiums = ["NAFL Official Map v1","Futsal 3x3 4x4 from HaxMaps", "Futsalx3 | TK&ED", "Futsal x3 by Bazinga from HaxMaps", "FUTHAX 4v4", "Happy Futsal 3x3 4x4","Happy Futsal 3x3 4x4"]
+    if stadium in recognized_stadiums:
+        return 1
+    return 0
+
+#Helper functions
+def point_slope(p, slope,x_goal):
+    #y - y1 = m(x-x1) -->  y=mx-mx1+y1 (returning the y)
+    y_val = (slope*x_goal)-(slope*p['x'])+p['y'] 
+    return y_val
+
+def slope(x1, y1, x2, y2):
+    m = (y2-y1)/(x2-x1+1e-10)
+    return m
