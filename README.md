@@ -147,6 +147,46 @@ make clean
 make
 ```
 
+### Testing Server
+
+When you make a change to the server, you may want to manually test that the API routes work.
+
+You can set a URL parameter on the HaxClass frontend that will make it use your local server instead of the production server.
+
+First, start the prediction server.
+
+```bash
+python server/__init__.py
+```
+
+Then, open one of the two pages listed below, with the `localml=true` parameter added to the URL.
+
+To verify that the frontend is making requests to your local server:
+
+- You should see logs for the requests in your terminal running the local server.
+- You can also open the browser developer console (right-click > inspect element > console tab).
+    - There should be a message saying `Fetching predictions from local server.` in the console.
+
+#### Option A: Leaderboard Page
+
+Shows stats and XG for top players in the room based on recent matches, **only uses the default model.**
+
+```
+https://vingkan.github.io/haxclass/hub/leaderboard.html?localml=true
+```
+
+Click the button labeled **Show Extended Stats** above the "Ranked Players" table and it will start sending requests to your local server.
+
+#### Option B: Match Page
+
+Shows stats and XG for a given match, **allows the user to switch to any model in the model configs.**
+
+```
+https://vingkan.github.io/haxclass/hub/xg.html?m=-MQsAFNKGdFPM9tTfFgv&localml=true
+```
+
+To change models, type a new model ID in the **Model** input and hit enter.
+
 ### Using Git
 
 Ask Vinesh to be added as a collaborator to the repository before trying to commit your work.
