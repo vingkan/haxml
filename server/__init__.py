@@ -125,33 +125,31 @@ MODEL_CONFIGS = [
         "predictor": predict_xg_lynn_both
     }
 ]
-# Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn).
+# Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn, path).
 # Changed to just load the defualt model
 production_models = {}
 for model_config in MODEL_CONFIGS:
     print("Putting in dictionary: " + model_config["name"])
     gen = model_config["generator"]
     pred = model_config["predictor"]
+    path = model_config["path"]
     if model_config["name"] == DEFAULT_MODEL:
         print("Loading: " + model_config["name"])
-        clf = joblib.load(model_config["path"])
-        production_models[model_config["name"]] = (clf,gen, pred)
+        clf = joblib.load(path)
+        production_models[model_config["name"]] = (clf,gen, pred, path)
     else:
-        production_models[model_config["name"]] = (None, gen, pred)
+        production_models[model_config["name"]] = (None, gen, pred, path)
 print("\tDone in {:.1f} secs".format(time.time() - start_time))
 
 #Load the called model function
 
 def load_model(name):
-    print("Loading: " + model_config["name"])
-    for model_config in MODEL_CONFIGS:
-        if model_config["name"] == name:
-            print("Loading: " + model_config["name"])
-            gen = model_config["generator"]
-            pred = model_config["predictor"]
-            clf = joblib.load(model_config["path"])
-            production_models[model_config["name"]] = (clf,gen, pred)
-            return (clf,gen, pred)
+    print("Loading: " + name)
+    clf, gen, pred, path = production_models[name]
+    if clf is None:
+        clf = joblib.load(model_config["path"])
+    production_models[name] = (clf,gen, pred,path)
+    return (clf,gen, pred, path)
 
 # Load stadium data.
 print("Loading stadiums...")
@@ -207,9 +205,9 @@ def get_model_by_name(model_name=DEFAULT_MODEL):
     """
     if model_name not in production_models:
         raise KeyError("No model named: {}".format(model_name))
-    clf, gen, pred = production_models[model_name]
+    clf, gen, pred, path = production_models[model_name]
     if clf is None:
-        clf, gen, pred = load_model(model_name)
+        clf, gen, pred, path = load_model(model_name)
     return clf, gen, pred
     
 
