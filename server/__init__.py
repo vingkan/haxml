@@ -90,25 +90,25 @@ MODEL_CONFIGS = [
     },
     {
         "name": "edwin_classic_rf_12",
-        "path": "models/random_forest_max_depth_12_classic.pkl",
+        "path": "models/edwin_classic_random_forest_max_depth_12.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_classic_rf_8",
-        "path": "models/random_forest_max_depth_8_classic.pkl",
+        "path": "models/edwin_classic_random_forest_max_depth_8.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_rf_12",
-        "path": "models/random_forest_max_depth_12.pkl",
+        "path": "models/edwin_random_forest_max_depth_12.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
     {
         "name": "edwin_rf_8",
-        "path": "models/random_forest_max_depth_8.pkl",
+        "path": "models/edwin_random_forest_max_depth_8.pkl",
         "generator": generate_rows_edwin,
         "predictor": predict_xg_edwin
     },
