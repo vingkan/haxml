@@ -126,14 +126,32 @@ MODEL_CONFIGS = [
     }
 ]
 # Dict of production models, key: model name, value: tuple (clf, generator_fn, predictor_fn).
+# Changed to just load the defualt model
 production_models = {}
 for model_config in MODEL_CONFIGS:
-    print("Loading: " + model_config["name"])
-    clf = joblib.load(model_config["path"])
+    print("Putting in dictionary: " + model_config["name"])
     gen = model_config["generator"]
     pred = model_config["predictor"]
-    production_models[model_config["name"]] = (clf, gen, pred)
+    if model_config["name"] == DEFAULT_MODEL:
+        print("Loading: " + model_config["name"])
+        clf = joblib.load(model_config["path"])
+        production_models[model_config["name"]] = (clf,gen, pred)
+    else:
+        production_models[model_config["name"]] = (None, gen, pred)
 print("\tDone in {:.1f} secs".format(time.time() - start_time))
+
+#Load the called model function
+
+def load_model(name):
+    print("Loading: " + model_config["name"])
+    for model_config in MODEL_CONFIGS:
+        if model_config["name"] == name:
+            print("Loading: " + model_config["name"])
+            gen = model_config["generator"]
+            pred = model_config["predictor"]
+            clf = joblib.load(model_config["path"])
+            production_models[model_config["name"]] = (clf,gen, pred)
+            return (clf,gen, pred)
 
 # Load stadium data.
 print("Loading stadiums...")
@@ -190,8 +208,10 @@ def get_model_by_name(model_name=DEFAULT_MODEL):
     if model_name not in production_models:
         raise KeyError("No model named: {}".format(model_name))
     clf, gen, pred = production_models[model_name]
+    if clf is None:
+        clf, gen, pred = load_model(model_name)
     return clf, gen, pred
-
+    
 
 @app.route("/hello")
 def hello():
