@@ -67,8 +67,6 @@ print("Loading models...")
 start_time = time.time()
 # Define the models to load in production.
 DEFAULT_MODEL = "lynn_rf_weighted"
-# TODO: Consider lazy loading models at request to reduce server start-up time
-# while still allowing us to access many deployed models in production.
 MODEL_CONFIGS = [
     {
         "name": "demo_logit",
@@ -136,7 +134,7 @@ for model_config in MODEL_CONFIGS:
     if model_config["name"] == DEFAULT_MODEL:
         print("Loading: " + model_config["name"])
         clf = joblib.load(path)
-        production_models[model_config["name"]] = (clf,gen, pred, path)
+        production_models[model_config["name"]] = (clf, gen, pred, path)
     else:
         production_models[model_config["name"]] = (None, gen, pred, path)
 print("\tDone in {:.1f} secs".format(time.time() - start_time))
@@ -147,9 +145,9 @@ def load_model(name):
     print("Loading: " + name)
     clf, gen, pred, path = production_models[name]
     if clf is None:
-        clf = joblib.load(model_config["path"])
+        clf = joblib.load(path)
     production_models[name] = (clf,gen, pred,path)
-    return (clf,gen, pred, path)
+    return clf
 
 # Load stadium data.
 print("Loading stadiums...")
@@ -207,7 +205,7 @@ def get_model_by_name(model_name=DEFAULT_MODEL):
         raise KeyError("No model named: {}".format(model_name))
     clf, gen, pred, path = production_models[model_name]
     if clf is None:
-        clf, gen, pred, path = load_model(model_name)
+        clf = load_model(model_name)
     return clf, gen, pred
     
 
